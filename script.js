@@ -13,343 +13,333 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Constants
-const ADMIN_CODE = '123';
-let scheduleData = null;
-let currentDay = 'monday';
-
-// Initial schedule data
-const initialSchedule = {
-    "monday": [
-        {"name": "Алгебра", "time": "8:00", "homework": ""},
-        {"name": "Русский язык", "time": "8:55", "homework": ""},
-        {"name": "История", "time": "9:50", "homework": ""},
-        {"name": "Английский язык", "time": "10:45", "homework": ""},
-        {"name": "Литература", "time": "11:40", "homework": ""},
-        {"name": "География", "time": "12:35", "homework": ""},
-        {"name": "Химия", "time": "13:30", "homework": ""},
-        {"name": "ЭЛЕКТИВ ФИЗИКА", "time": "14:25", "homework": ""}
+// Local schedule data
+const localSchedule = {
+    monday: [
+        { time: "8:30 - 9:15", name: "Математика" },
+        { time: "9:25 - 10:10", name: "Физика" },
+        { time: "10:20 - 11:05", name: "История" },
+        { time: "11:25 - 12:10", name: "Английский язык" },
+        { time: "12:20 - 13:05", name: "Литература" },
+        { time: "13:15 - 14:00", name: "Информатика" }
     ],
-    "tuesday": [
-        {"name": "Геометрия", "time": "8:00", "homework": ""},
-        {"name": "Биология", "time": "8:55", "homework": ""},
-        {"name": "Физика", "time": "9:50", "homework": ""},
-        {"name": "Русский язык", "time": "10:45", "homework": ""},
-        {"name": "История", "time": "11:40", "homework": ""},
-        {"name": "Физкультура", "time": "12:35", "homework": ""},
-        {"name": "ЭЛЕКТИВ ИНФОРМАТИКА", "time": "13:30", "homework": ""}
+    tuesday: [
+        { time: "8:30 - 9:15", name: "Биология" },
+        { time: "9:25 - 10:10", name: "Химия" },
+        { time: "10:20 - 11:05", name: "Математика" },
+        { time: "11:25 - 12:10", name: "География" },
+        { time: "12:20 - 13:05", name: "Физкультура" },
+        { time: "13:15 - 14:00", name: "Русский язык" }
     ],
-    "wednesday": [
-        {"name": "Алгебра", "time": "8:00", "homework": ""},
-        {"name": "Информатика", "time": "8:55", "homework": ""},
-        {"name": "Английский язык", "time": "9:50", "homework": ""},
-        {"name": "Литература", "time": "10:45", "homework": ""},
-        {"name": "География", "time": "11:40", "homework": ""},
-        {"name": "ОБЖ", "time": "12:35", "homework": ""},
-        {"name": "Физкультура", "time": "13:30", "homework": ""}
+    wednesday: [
+        { time: "8:30 - 9:15", name: "История" },
+        { time: "9:25 - 10:10", name: "Математика" },
+        { time: "10:20 - 11:05", name: "Физика" },
+        { time: "11:25 - 12:10", name: "Английский язык" },
+        { time: "12:20 - 13:05", name: "Информатика" },
+        { time: "13:15 - 14:00", name: "Литература" }
     ],
-    "thursday": [
-        {"name": "Геометрия", "time": "8:00", "homework": ""},
-        {"name": "Химия", "time": "8:55", "homework": ""},
-        {"name": "Физика", "time": "9:50", "homework": ""},
-        {"name": "Биология", "time": "10:45", "homework": ""},
-        {"name": "Русский язык", "time": "11:40", "homework": ""},
-        {"name": "История", "time": "12:35", "homework": ""},
-        {"name": "ЭЛЕКТИВ ОБЩЕСТВОЗНАНИЕ", "time": "13:30", "homework": ""}
+    thursday: [
+        { time: "8:30 - 9:15", name: "Химия" },
+        { time: "9:25 - 10:10", name: "Биология" },
+        { time: "10:20 - 11:05", name: "Математика" },
+        { time: "11:25 - 12:10", name: "География" },
+        { time: "12:20 - 13:05", name: "Физкультура" },
+        { time: "13:15 - 14:00", name: "Русский язык" }
     ],
-    "friday": [
-        {"name": "Алгебра", "time": "8:00", "homework": ""},
-        {"name": "Литература", "time": "8:55", "homework": ""},
-        {"name": "Английский язык", "time": "9:50", "homework": ""},
-        {"name": "Информатика", "time": "10:45", "homework": ""},
-        {"name": "География", "time": "11:40", "homework": ""},
-        {"name": "Физкультура", "time": "12:35", "homework": ""},
-        {"name": "Обществознание", "time": "13:30", "homework": ""}
+    friday: [
+        { time: "8:30 - 9:15", name: "Физика" },
+        { time: "9:25 - 10:10", name: "История" },
+        { time: "10:20 - 11:05", name: "Математика" },
+        { time: "11:25 - 12:10", name: "Английский язык" },
+        { time: "12:20 - 13:05", name: "Литература" },
+        { time: "13:15 - 14:00", name: "Информатика" }
     ]
 };
 
-// Theme handling
-function toggleTheme() {
-    const html = document.documentElement;
-    const currentTheme = html.getAttribute('data-theme');
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    
-    // Update theme icon
-    const sunIcon = document.querySelector('.sun-icon');
-    const moonIcon = document.querySelector('.moon-icon');
-    
-    if (newTheme === 'dark') {
-        sunIcon.style.display = 'none';
-        moonIcon.style.display = 'block';
-    } else {
-        sunIcon.style.display = 'block';
-        moonIcon.style.display = 'none';
-    }
+// DOM Elements
+const scheduleContent = document.querySelector('.schedule-content');
+const dayTabs = document.querySelectorAll('.tab-btn');
+const adminPanel = document.querySelector('.admin-section');
+const loginModal = document.querySelector('.modal');
+const loginForm = document.querySelector('.login-form');
+const loginBtn = document.querySelector('.login-btn');
+const logoutBtn = document.querySelector('.logout-btn');
+const themeSwitcher = document.querySelector('.theme-switcher');
+const connectionStatus = document.querySelector('.connection-status');
+
+// Current state
+let currentDay = 'monday';
+let isAdmin = false;
+let isOnline = false;
+
+// Initialize app
+function initializeApp() {
+    setupTheme();
+    setupConnectionStatus();
+    setupRealtimeSync();
+    setupEventListeners();
+    showSchedule(currentDay);
 }
 
-// Initialize theme
-function initTheme() {
+// Setup theme
+function setupTheme() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
-    
-    // Set initial icon
+    updateThemeIcon(savedTheme);
+}
+
+// Toggle theme
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+}
+
+// Update theme icon
+function updateThemeIcon(theme) {
     const sunIcon = document.querySelector('.sun-icon');
     const moonIcon = document.querySelector('.moon-icon');
-    
-    if (savedTheme === 'dark') {
+    if (theme === 'dark') {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+    } else {
         sunIcon.style.display = 'none';
         moonIcon.style.display = 'block';
     }
 }
 
-// Initialize the application
-document.addEventListener('DOMContentLoaded', () => {
-    initTheme();
-    initializeApp();
-    setupConnectionStatus();
-});
-
-// Setup connection status monitoring
+// Setup connection status
 function setupConnectionStatus() {
     const connectedRef = database.ref('.info/connected');
-    const statusDiv = document.createElement('div');
-    statusDiv.className = 'connection-status';
-    document.querySelector('.container').appendChild(statusDiv);
-
     connectedRef.on('value', (snap) => {
-        if (snap.val() === true) {
-            statusDiv.textContent = 'Онлайн';
-            statusDiv.className = 'connection-status online';
-        } else {
-            statusDiv.textContent = 'Офлайн';
-            statusDiv.className = 'connection-status offline';
-        }
+        isOnline = snap.val();
+        connectionStatus.textContent = isOnline ? 'Онлайн' : 'Офлайн';
+        connectionStatus.className = `connection-status ${isOnline ? 'online' : 'offline'}`;
     });
 }
 
-async function initializeApp() {
-    try {
-        // Check if data exists in Firebase
-        const snapshot = await database.ref('schedule').once('value');
-        if (!snapshot.exists()) {
-            // If no data exists, initialize with default schedule
-            await database.ref('schedule').set(initialSchedule);
-            console.log('Initial schedule data loaded to Firebase');
-        }
-        
-        // Now load the schedule and set up listeners
-        await setupRealtimeSync();
-        setupTabListeners();
-        checkSavedLogin();
-        updateLessonSelect(); // Initialize lesson select if admin
-    } catch (error) {
-        console.error('Error initializing app:', error);
-        alert('Ошибка подключения к базе данных. Используются локальные данные.');
-        // If Firebase fails, use local data
-        scheduleData = initialSchedule;
-        displaySchedule(currentDay);
-    }
-}
-
-// Setup realtime synchronization
-async function setupRealtimeSync() {
+// Setup realtime sync
+function setupRealtimeSync() {
     const scheduleRef = database.ref('schedule');
-    
-    // Listen for all data changes
     scheduleRef.on('value', (snapshot) => {
-        scheduleData = snapshot.val() || initialSchedule;
-        displaySchedule(currentDay);
-        console.log('Schedule updated from Firebase');
+        const data = snapshot.val();
+        if (data) {
+            showSchedule(currentDay, data);
+        } else {
+            showSchedule(currentDay);
+        }
+    }, (error) => {
+        console.error('Error loading schedule:', error);
+        showSchedule(currentDay);
     });
 
-    // Listen for specific homework changes
-    scheduleRef.on('child_changed', (snapshot) => {
-        const dayKey = snapshot.key;
-        const dayData = snapshot.val();
-        
-        // Update only if the changed day is currently displayed
-        if (dayKey === currentDay) {
-            displaySchedule(currentDay);
-        }
-        
-        // Show notification if homework was changed
-        const changedLesson = dayData.find(lesson => lesson.homework);
-        if (changedLesson) {
-            showNotification(`Добавлено новое ДЗ по предмету: ${changedLesson.name}`);
-        }
+    const homeworkRef = database.ref('homework');
+    homeworkRef.on('child_added', (snapshot) => {
+        const homework = snapshot.val();
+        showNotification(`Новое домашнее задание по предмету: ${homework.subject}`);
+        showSchedule(currentDay);
+    });
+
+    homeworkRef.on('child_changed', (snapshot) => {
+        const homework = snapshot.val();
+        showNotification(`Обновлено домашнее задание по предмету: ${homework.subject}`);
+        showSchedule(currentDay);
     });
 }
 
-// Show notification function
-function showNotification(message) {
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.classList.add('show');
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }, 100);
-}
-
-// Setup tab listeners
-function setupTabListeners() {
-    const tabs = document.querySelectorAll('.tab-btn');
-    tabs.forEach(tab => {
+// Setup event listeners
+function setupEventListeners() {
+    // Day tabs
+    dayTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
+            dayTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             currentDay = tab.dataset.day;
-            displaySchedule(currentDay);
+            showSchedule(currentDay);
         });
+    });
+
+    // Theme switcher
+    themeSwitcher.addEventListener('click', toggleTheme);
+
+    // Login form
+    loginForm.addEventListener('submit', handleLogin);
+
+    // Login button
+    loginBtn.addEventListener('click', () => {
+        loginModal.style.display = 'flex';
+    });
+
+    // Logout button
+    logoutBtn.addEventListener('click', handleLogout);
+
+    // Close modal on outside click
+    loginModal.addEventListener('click', (e) => {
+        if (e.target === loginModal) {
+            loginModal.style.display = 'none';
+        }
+    });
+
+    // Admin panel
+    if (adminPanel) {
+        const daySelect = document.getElementById('daySelect');
+        const lessonSelect = document.getElementById('lessonSelect');
+        const homeworkInput = document.getElementById('homeworkInput');
+        const addHomeworkBtn = document.getElementById('addHomeworkBtn');
+
+        daySelect.addEventListener('change', () => {
+            updateLessonSelect(daySelect.value, lessonSelect);
+        });
+
+        addHomeworkBtn.addEventListener('click', () => {
+            const day = daySelect.value;
+            const lessonName = lessonSelect.value;
+            const homework = homeworkInput.value.trim();
+
+            if (homework && lessonName) {
+                addHomework(day, lessonName, homework);
+                homeworkInput.value = '';
+            }
+        });
+    }
+}
+
+// Show schedule
+function showSchedule(day, firebaseData = null) {
+    const schedule = firebaseData || localSchedule;
+    const daySchedule = schedule[day];
+    
+    if (!daySchedule) {
+        scheduleContent.innerHTML = '<p class="no-schedule">Расписание на этот день отсутствует</p>';
+        return;
+    }
+
+    const dayNames = {
+        monday: 'Понедельник',
+        tuesday: 'Вторник',
+        wednesday: 'Среда',
+        thursday: 'Четверг',
+        friday: 'Пятница'
+    };
+
+    let html = `
+        <div class="schedule-day">
+            <h2>${dayNames[day]}</h2>
+            <div class="lessons-list">
+    `;
+
+    daySchedule.forEach(lesson => {
+        const homework = getHomework(day, lesson.name);
+        html += `
+            <div class="lesson-item">
+                <div class="lesson-info">
+                    <span class="lesson-time">${lesson.time}</span>
+                    <span class="lesson-name">${lesson.name}</span>
+                </div>
+                <div class="lesson-homework">${homework || ''}</div>
+            </div>
+        `;
+    });
+
+    html += `
+            </div>
+        </div>
+    `;
+
+    scheduleContent.innerHTML = html;
+}
+
+// Get homework
+function getHomework(day, subject) {
+    const homework = localStorage.getItem(`homework_${day}_${subject}`);
+    return homework || '';
+}
+
+// Add homework
+function addHomework(day, subject, homework) {
+    if (!isAdmin) return;
+
+    const homeworkRef = database.ref('homework').push();
+    homeworkRef.set({
+        day,
+        subject,
+        homework,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        showNotification('Домашнее задание успешно добавлено');
+    }).catch(error => {
+        console.error('Error adding homework:', error);
+        showNotification('Ошибка при добавлении домашнего задания', 'error');
     });
 }
 
-// Display schedule for selected day
-function displaySchedule(day) {
-    const container = document.getElementById('schedule-content');
-    const daySchedule = scheduleData[day];
-    
-    if (!daySchedule) {
-        container.innerHTML = 'Нет данных для этого дня';
-        return;
-    }
-
-    const days = {
-        'monday': 'Понедельник',
-        'tuesday': 'Вторник',
-        'wednesday': 'Среда',
-        'thursday': 'Четверг',
-        'friday': 'Пятница'
-    };
-
-    const dayElement = document.createElement('div');
-    dayElement.className = 'schedule-day';
-    dayElement.innerHTML = `
-        <h2>${days[day]}</h2>
-        ${daySchedule.map((lesson, index) => `
-            <div class="lesson-item">
-                <div class="lesson-info">
-                    <div class="lesson-time">${lesson.time}</div>
-                    <div class="lesson-name">${lesson.name}</div>
-                </div>
-                <div class="lesson-homework" id="${day}-${index}">
-                    ${lesson.homework || 'Нет домашнего задания'}
-                </div>
-            </div>
-        `).join('')}
-    `;
-    
-    container.innerHTML = '';
-    container.appendChild(dayElement);
+// Update lesson select
+function updateLessonSelect(day, select) {
+    const lessons = localSchedule[day];
+    select.innerHTML = lessons.map(lesson => 
+        `<option value="${lesson.name}">${lesson.name}</option>`
+    ).join('');
 }
 
-// Check for saved login
-function checkSavedLogin() {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (isLoggedIn === 'true') {
-        document.getElementById('main-nav').style.display = 'none';
-        document.getElementById('admin-nav').style.display = 'flex';
-    }
+// Show notification
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    // Show notification
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+
+    // Hide and remove notification
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
 }
 
-// Login functionality
-function showLoginModal() {
-    document.getElementById('login-modal').style.display = 'flex';
-}
-
-function login() {
-    const code = document.getElementById('admin-code').value;
-    const rememberLogin = document.getElementById('remember-login').checked;
+// Handle login
+function handleLogin(e) {
+    e.preventDefault();
+    const password = document.getElementById('password').value;
     
-    if (code === ADMIN_CODE) {
-        document.getElementById('login-modal').style.display = 'none';
-        document.getElementById('main-nav').style.display = 'none';
-        document.getElementById('admin-nav').style.display = 'flex';
-        document.getElementById('admin-code').value = '';
-        
-        if (rememberLogin) {
-            localStorage.setItem('isLoggedIn', 'true');
-        }
+    if (password === 'admin123') {
+        isAdmin = true;
+        loginModal.style.display = 'none';
+        adminPanel.style.display = 'block';
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'block';
+        localStorage.setItem('isAdmin', 'true');
+        showNotification('Вы успешно вошли как администратор');
     } else {
-        alert('Неверный код!');
+        showNotification('Неверный пароль', 'error');
     }
 }
 
-function logout() {
-    document.getElementById('main-nav').style.display = 'flex';
-    document.getElementById('admin-nav').style.display = 'none';
-    document.getElementById('admin-panel').style.display = 'none';
-    localStorage.removeItem('isLoggedIn');
-    showMainContent();
+// Handle logout
+function handleLogout() {
+    isAdmin = false;
+    adminPanel.style.display = 'none';
+    loginBtn.style.display = 'block';
+    logoutBtn.style.display = 'none';
+    localStorage.removeItem('isAdmin');
+    showNotification('Вы вышли из системы');
 }
 
-// Admin panel functionality
-function showAdminPanel() {
-    document.getElementById('schedule-container').style.display = 'none';
-    document.getElementById('admin-panel').style.display = 'block';
-    updateLessonSelect();
+// Check admin status on load
+if (localStorage.getItem('isAdmin') === 'true') {
+    isAdmin = true;
+    adminPanel.style.display = 'block';
+    loginBtn.style.display = 'none';
+    logoutBtn.style.display = 'block';
 }
 
-function showMainContent() {
-    document.getElementById('schedule-container').style.display = 'block';
-    document.getElementById('admin-panel').style.display = 'none';
-}
-
-function updateLessonSelect() {
-    const daySelect = document.getElementById('day-select');
-    const lessonSelect = document.getElementById('lesson-select');
-    const selectedDay = daySelect.value;
-    const lessons = scheduleData[selectedDay];
-
-    lessonSelect.innerHTML = lessons.map((lesson, index) => `
-        <option value="${index}">${lesson.time} - ${lesson.name}</option>
-    `).join('');
-}
-
-// Add event listeners for admin controls
-document.getElementById('day-select').addEventListener('change', updateLessonSelect);
-
-// Add homework functionality
-async function addHomework() {
-    const daySelect = document.getElementById('day-select');
-    const lessonSelect = document.getElementById('lesson-select');
-    const homeworkInput = document.getElementById('homework-input');
-    
-    const selectedDay = daySelect.value;
-    const selectedLessonIndex = parseInt(lessonSelect.value);
-    const homework = homeworkInput.value.trim();
-
-    if (!homework) {
-        alert('Введите домашнее задание!');
-        return;
-    }
-
-    try {
-        // Show loading state
-        const submitButton = document.querySelector('.admin-controls button');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Сохранение...';
-
-        // Update Firebase
-        await database.ref(`schedule/${selectedDay}/${selectedLessonIndex}/homework`).set(homework);
-        
-        // Clear input and reset button
-        homeworkInput.value = '';
-        submitButton.disabled = false;
-        submitButton.textContent = 'Добавить ДЗ';
-        
-        // Show success message
-        showNotification('Домашнее задание успешно добавлено!');
-    } catch (error) {
-        console.error('Error saving homework:', error);
-        alert('Ошибка при сохранении домашнего задания. Попробуйте еще раз.');
-    }
-} 
+// Initialize app when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeApp); 
