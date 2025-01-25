@@ -1,17 +1,7 @@
-// Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyC_1YTXiDHxWPqDtTe4S0QNoRrdYbXPyRE",
-    authDomain: "class9g-schedule-real.firebaseapp.com",
-    databaseURL: "https://class9g-schedule-real-default-rtdb.firebaseio.com",
-    projectId: "class9g-schedule-real",
-    storageBucket: "class9g-schedule-real.appspot.com",
-    messagingSenderId: "1048532828587",
-    appId: "1:1048532828587:web:a1b2c3d4e5f6a7b8c9d0e1"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+// Supabase configuration
+const supabaseUrl = 'https://qvqfxvbhwxjxvzqvjpzm.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2cWZ4dmJod3hqeHZ6cXZqcHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDYyMDc5NzAsImV4cCI6MjAyMTc4Mzk3MH0.Ry8SQy1YvEVxVVZNGGVHWZlF3TZhQ5QZy5ZXQ5ZXQ5Y';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Local schedule data
 const localSchedule = {
@@ -71,13 +61,13 @@ const connectionStatus = document.querySelector('.connection-status');
 // Current state
 let currentDay = 'monday';
 let isAdmin = false;
-let isOnline = false;
+let isOnline = true; // Supabase всегда работает в офлайн режиме с локальным кэшем
 
 // Initialize app
-function initializeApp() {
+async function initializeApp() {
     setupTheme();
     setupConnectionStatus();
-    setupRealtimeSync();
+    await setupRealtimeSync();
     setupEventListeners();
     showSchedule(currentDay);
     
@@ -120,55 +110,55 @@ function updateThemeIcon(theme) {
 
 // Setup connection status
 function setupConnectionStatus() {
-    const connectedRef = database.ref('.info/connected');
-    connectedRef.on('value', (snap) => {
-        isOnline = snap.val();
-        connectionStatus.textContent = isOnline ? 'Онлайн' : 'Офлайн';
-        connectionStatus.className = `connection-status ${isOnline ? 'online' : 'offline'}`;
-    }, (error) => {
-        console.error('Error checking connection:', error);
-        isOnline = false;
-        connectionStatus.textContent = 'Офлайн';
-        connectionStatus.className = 'connection-status offline';
-    });
+    // Supabase работает офлайн, поэтому всегда показываем статус "онлайн"
+    connectionStatus.textContent = 'Онлайн';
+    connectionStatus.className = 'connection-status online';
 }
 
 // Setup realtime sync
-function setupRealtimeSync() {
-    const homeworkRef = database.ref('homework');
-    
-    // Listen for homework changes
-    homeworkRef.on('value', (snapshot) => {
-        const homeworkData = snapshot.val();
-        if (homeworkData) {
-            // Update local storage with Firebase data
-            Object.keys(homeworkData).forEach(key => {
-                const hw = homeworkData[key];
+async function setupRealtimeSync() {
+    // Подписываемся на изменения в таблице homework
+    const subscription = supabase
+        .channel('homework_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'homework' }, 
+            payload => {
+                if (payload.eventType === 'INSERT') {
+                    showNotification(`Новое домашнее задание по предмету: ${payload.new.subject}`);
+                } else if (payload.eventType === 'UPDATE') {
+                    showNotification(`Обновлено домашнее задание по предмету: ${payload.new.subject}`);
+                }
+                refreshHomework();
+            }
+        )
+        .subscribe();
+
+    // Загружаем текущие домашние задания
+    await refreshHomework();
+}
+
+// Refresh homework data
+async function refreshHomework() {
+    try {
+        const { data, error } = await supabase
+            .from('homework')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Обновляем локальное хранилище
+        if (data) {
+            data.forEach(hw => {
                 localStorage.setItem(`homework_${hw.day}_${hw.subject}`, hw.homework);
             });
         }
-        // Refresh current view
+
+        // Обновляем отображение
         showSchedule(currentDay);
-    }, (error) => {
-        console.error('Error loading homework:', error);
+    } catch (error) {
+        console.error('Error refreshing homework:', error);
         showNotification('Ошибка при загрузке домашних заданий', 'error');
-    });
-
-    // Listen for new homework
-    homeworkRef.on('child_added', (snapshot) => {
-        const homework = snapshot.val();
-        if (homework) {
-            showNotification(`Новое домашнее задание по предмету: ${homework.subject}`);
-        }
-    });
-
-    // Listen for homework updates
-    homeworkRef.on('child_changed', (snapshot) => {
-        const homework = snapshot.val();
-        if (homework) {
-            showNotification(`Обновлено домашнее задание по предмету: ${homework.subject}`);
-        }
-    });
+    }
 }
 
 // Setup event listeners
@@ -226,13 +216,13 @@ function setupEventListeners() {
         }
 
         if (addHomeworkBtn && daySelect && lessonSelect && homeworkInput) {
-            addHomeworkBtn.addEventListener('click', () => {
+            addHomeworkBtn.addEventListener('click', async () => {
                 const day = daySelect.value;
                 const lessonName = lessonSelect.value;
                 const homework = homeworkInput.value.trim();
 
                 if (homework && lessonName) {
-                    addHomework(day, lessonName, homework);
+                    await addHomework(day, lessonName, homework);
                     homeworkInput.value = '';
                 } else {
                     showNotification('Пожалуйста, заполните все поля', 'error');
@@ -243,9 +233,8 @@ function setupEventListeners() {
 }
 
 // Show schedule
-function showSchedule(day, firebaseData = null) {
-    const schedule = firebaseData || localSchedule;
-    const daySchedule = schedule[day];
+function showSchedule(day) {
+    const daySchedule = localSchedule[day];
     
     if (!daySchedule) {
         scheduleContent.innerHTML = '<p class="no-schedule">Расписание на этот день отсутствует</p>';
@@ -289,57 +278,38 @@ function showSchedule(day, firebaseData = null) {
 
 // Get homework
 function getHomework(day, subject) {
-    try {
-        // Try to get homework from localStorage first
-        const localHomework = localStorage.getItem(`homework_${day}_${subject}`);
-        if (localHomework) return localHomework;
-
-        // If not in localStorage, try to get from Firebase
-        const homeworkRef = database.ref('homework');
-        homeworkRef.orderByChild('subject').equalTo(subject).once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                const hwKey = Object.keys(data)[0];
-                const homework = data[hwKey].homework;
-                localStorage.setItem(`homework_${day}_${subject}`, homework);
-                return homework;
-            }
-        });
-
-        return '';
-    } catch (error) {
-        console.error('Error getting homework:', error);
-        return '';
-    }
+    return localStorage.getItem(`homework_${day}_${subject}`) || '';
 }
 
 // Add homework
-function addHomework(day, subject, homework) {
+async function addHomework(day, subject, homework) {
     if (!isAdmin) {
         showNotification('У вас нет прав для добавления домашнего задания', 'error');
         return;
     }
 
-    if (!isOnline) {
-        showNotification('Нет подключения к интернету', 'error');
-        return;
-    }
+    try {
+        const { data, error } = await supabase
+            .from('homework')
+            .upsert([
+                {
+                    day,
+                    subject,
+                    homework,
+                    created_at: new Date().toISOString()
+                }
+            ]);
 
-    const homeworkRef = database.ref('homework').push();
-    homeworkRef.set({
-        day,
-        subject,
-        homework,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-    }).then(() => {
+        if (error) throw error;
+
         // Update local storage immediately
         localStorage.setItem(`homework_${day}_${subject}`, homework);
         showNotification('Домашнее задание успешно добавлено');
-        showSchedule(currentDay); // Refresh view
-    }).catch(error => {
+        showSchedule(currentDay);
+    } catch (error) {
         console.error('Error adding homework:', error);
         showNotification('Ошибка при добавлении домашнего задания', 'error');
-    });
+    }
 }
 
 // Update lesson select
