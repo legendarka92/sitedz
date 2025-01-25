@@ -1,12 +1,12 @@
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyC_1YTXiDHxWPqDtTe4S0QNoRrdYbXPyRE",
-    authDomain: "class9g-schedule-real.firebaseapp.com",
-    databaseURL: "https://class9g-schedule-real-default-rtdb.firebaseio.com",
-    projectId: "class9g-schedule-real",
-    storageBucket: "class9g-schedule-real.appspot.com",
-    messagingSenderId: "1048532828587",
-    appId: "1:1048532828587:web:a1b2c3d4e5f6a7b8c9d0e1"
+    apiKey: "AIzaSyBJ9lF6e1H_uGkDCx7wkpRf3qVIZzO-5eo",
+    authDomain: "class9g-schedule.firebaseapp.com",
+    databaseURL: "https://class9g-schedule-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "class9g-schedule",
+    storageBucket: "class9g-schedule.appspot.com",
+    messagingSenderId: "447128777439",
+    appId: "1:447128777439:web:8b0c0e0f0f0f0f0f0f0f0f"
 };
 
 // Initialize Firebase
@@ -80,6 +80,13 @@ function initializeApp() {
     setupRealtimeSync();
     setupEventListeners();
     showSchedule(currentDay);
+    
+    // Initialize lesson select on load
+    const daySelect = document.getElementById('daySelect');
+    const lessonSelect = document.getElementById('lessonSelect');
+    if (daySelect && lessonSelect) {
+        updateLessonSelect(daySelect.value, lessonSelect);
+    }
 }
 
 // Setup theme
@@ -118,35 +125,49 @@ function setupConnectionStatus() {
         isOnline = snap.val();
         connectionStatus.textContent = isOnline ? 'Онлайн' : 'Офлайн';
         connectionStatus.className = `connection-status ${isOnline ? 'online' : 'offline'}`;
+    }, (error) => {
+        console.error('Error checking connection:', error);
+        isOnline = false;
+        connectionStatus.textContent = 'Офлайн';
+        connectionStatus.className = 'connection-status offline';
     });
 }
 
 // Setup realtime sync
 function setupRealtimeSync() {
-    const scheduleRef = database.ref('schedule');
-    scheduleRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            showSchedule(currentDay, data);
-        } else {
-            showSchedule(currentDay);
+    const homeworkRef = database.ref('homework');
+    
+    // Listen for homework changes
+    homeworkRef.on('value', (snapshot) => {
+        const homeworkData = snapshot.val();
+        if (homeworkData) {
+            // Update local storage with Firebase data
+            Object.keys(homeworkData).forEach(key => {
+                const hw = homeworkData[key];
+                localStorage.setItem(`homework_${hw.day}_${hw.subject}`, hw.homework);
+            });
         }
-    }, (error) => {
-        console.error('Error loading schedule:', error);
+        // Refresh current view
         showSchedule(currentDay);
+    }, (error) => {
+        console.error('Error loading homework:', error);
+        showNotification('Ошибка при загрузке домашних заданий', 'error');
     });
 
-    const homeworkRef = database.ref('homework');
+    // Listen for new homework
     homeworkRef.on('child_added', (snapshot) => {
         const homework = snapshot.val();
-        showNotification(`Новое домашнее задание по предмету: ${homework.subject}`);
-        showSchedule(currentDay);
+        if (homework) {
+            showNotification(`Новое домашнее задание по предмету: ${homework.subject}`);
+        }
     });
 
+    // Listen for homework updates
     homeworkRef.on('child_changed', (snapshot) => {
         const homework = snapshot.val();
-        showNotification(`Обновлено домашнее задание по предмету: ${homework.subject}`);
-        showSchedule(currentDay);
+        if (homework) {
+            showNotification(`Обновлено домашнее задание по предмету: ${homework.subject}`);
+        }
     });
 }
 
@@ -166,22 +187,30 @@ function setupEventListeners() {
     themeSwitcher.addEventListener('click', toggleTheme);
 
     // Login form
-    loginForm.addEventListener('submit', handleLogin);
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
 
     // Login button
-    loginBtn.addEventListener('click', () => {
-        loginModal.style.display = 'flex';
-    });
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            loginModal.style.display = 'flex';
+        });
+    }
 
     // Logout button
-    logoutBtn.addEventListener('click', handleLogout);
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
 
     // Close modal on outside click
-    loginModal.addEventListener('click', (e) => {
-        if (e.target === loginModal) {
-            loginModal.style.display = 'none';
-        }
-    });
+    if (loginModal) {
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.style.display = 'none';
+            }
+        });
+    }
 
     // Admin panel
     if (adminPanel) {
@@ -190,20 +219,26 @@ function setupEventListeners() {
         const homeworkInput = document.getElementById('homeworkInput');
         const addHomeworkBtn = document.getElementById('addHomeworkBtn');
 
-        daySelect.addEventListener('change', () => {
-            updateLessonSelect(daySelect.value, lessonSelect);
-        });
+        if (daySelect && lessonSelect) {
+            daySelect.addEventListener('change', () => {
+                updateLessonSelect(daySelect.value, lessonSelect);
+            });
+        }
 
-        addHomeworkBtn.addEventListener('click', () => {
-            const day = daySelect.value;
-            const lessonName = lessonSelect.value;
-            const homework = homeworkInput.value.trim();
+        if (addHomeworkBtn && daySelect && lessonSelect && homeworkInput) {
+            addHomeworkBtn.addEventListener('click', () => {
+                const day = daySelect.value;
+                const lessonName = lessonSelect.value;
+                const homework = homeworkInput.value.trim();
 
-            if (homework && lessonName) {
-                addHomework(day, lessonName, homework);
-                homeworkInput.value = '';
-            }
-        });
+                if (homework && lessonName) {
+                    addHomework(day, lessonName, homework);
+                    homeworkInput.value = '';
+                } else {
+                    showNotification('Пожалуйста, заполните все поля', 'error');
+                }
+            });
+        }
     }
 }
 
@@ -254,13 +289,41 @@ function showSchedule(day, firebaseData = null) {
 
 // Get homework
 function getHomework(day, subject) {
-    const homework = localStorage.getItem(`homework_${day}_${subject}`);
-    return homework || '';
+    try {
+        // Try to get homework from localStorage first
+        const localHomework = localStorage.getItem(`homework_${day}_${subject}`);
+        if (localHomework) return localHomework;
+
+        // If not in localStorage, try to get from Firebase
+        const homeworkRef = database.ref('homework');
+        homeworkRef.orderByChild('subject').equalTo(subject).once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const hwKey = Object.keys(data)[0];
+                const homework = data[hwKey].homework;
+                localStorage.setItem(`homework_${day}_${subject}`, homework);
+                return homework;
+            }
+        });
+
+        return '';
+    } catch (error) {
+        console.error('Error getting homework:', error);
+        return '';
+    }
 }
 
 // Add homework
 function addHomework(day, subject, homework) {
-    if (!isAdmin) return;
+    if (!isAdmin) {
+        showNotification('У вас нет прав для добавления домашнего задания', 'error');
+        return;
+    }
+
+    if (!isOnline) {
+        showNotification('Нет подключения к интернету', 'error');
+        return;
+    }
 
     const homeworkRef = database.ref('homework').push();
     homeworkRef.set({
@@ -269,7 +332,10 @@ function addHomework(day, subject, homework) {
         homework,
         timestamp: firebase.database.ServerValue.TIMESTAMP
     }).then(() => {
+        // Update local storage immediately
+        localStorage.setItem(`homework_${day}_${subject}`, homework);
         showNotification('Домашнее задание успешно добавлено');
+        showSchedule(currentDay); // Refresh view
     }).catch(error => {
         console.error('Error adding homework:', error);
         showNotification('Ошибка при добавлении домашнего задания', 'error');
@@ -278,7 +344,11 @@ function addHomework(day, subject, homework) {
 
 // Update lesson select
 function updateLessonSelect(day, select) {
+    if (!select) return;
+    
     const lessons = localSchedule[day];
+    if (!lessons) return;
+
     select.innerHTML = lessons.map(lesson => 
         `<option value="${lesson.name}">${lesson.name}</option>`
     ).join('');
@@ -309,6 +379,7 @@ function showNotification(message, type = 'info') {
 function handleLogin(e) {
     e.preventDefault();
     const password = document.getElementById('password').value;
+    const rememberMe = document.getElementById('rememberMe').checked;
     
     if (password === 'admin123') {
         isAdmin = true;
@@ -316,7 +387,11 @@ function handleLogin(e) {
         adminPanel.style.display = 'block';
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'block';
-        localStorage.setItem('isAdmin', 'true');
+        
+        if (rememberMe) {
+            localStorage.setItem('isAdmin', 'true');
+        }
+        
         showNotification('Вы успешно вошли как администратор');
     } else {
         showNotification('Неверный пароль', 'error');
@@ -336,9 +411,9 @@ function handleLogout() {
 // Check admin status on load
 if (localStorage.getItem('isAdmin') === 'true') {
     isAdmin = true;
-    adminPanel.style.display = 'block';
-    loginBtn.style.display = 'none';
-    logoutBtn.style.display = 'block';
+    if (adminPanel) adminPanel.style.display = 'block';
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'block';
 }
 
 // Initialize app when DOM is loaded
