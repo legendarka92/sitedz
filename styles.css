@@ -5,6 +5,9 @@
     --text-color: #2c3e50;
     --border-radius: 8px;
     --shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --hover-color: #357abd;
+    --active-tab-color: #fff;
+    --inactive-tab-color: #e9ecef;
 }
 
 * {
@@ -27,7 +30,7 @@ body {
 }
 
 header {
-    background-color: white;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     padding: 20px;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
@@ -35,9 +38,11 @@ header {
 }
 
 h1 {
-    color: var(--primary-color);
+    color: white;
     margin-bottom: 20px;
     text-align: center;
+    font-size: 2.5em;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
 }
 
 nav {
@@ -47,21 +52,25 @@ nav {
 }
 
 .nav-btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     border: none;
     border-radius: var(--border-radius);
-    background-color: var(--primary-color);
+    background-color: rgba(255,255,255,0.1);
     color: white;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    backdrop-filter: blur(5px);
 }
 
 .nav-btn:hover {
-    background-color: #357abd;
+    background-color: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
 }
 
 .nav-btn.active {
-    background-color: var(--secondary-color);
+    background-color: rgba(255,255,255,0.3);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .content-section {
@@ -71,13 +80,56 @@ nav {
     box-shadow: var(--shadow);
 }
 
-.schedule-day {
+.tabs {
+    display: flex;
+    gap: 5px;
     margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    border: none;
+    background-color: var(--inactive-tab-color);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.tab-btn:hover {
+    background-color: var(--hover-color);
+    color: white;
+}
+
+.tab-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow);
+}
+
+.schedule-day {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .schedule-day h2 {
-    color: var(--secondary-color);
-    margin-bottom: 10px;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    font-size: 1.8em;
 }
 
 .lesson-item {
@@ -88,10 +140,21 @@ nav {
     background-color: #f8f9fa;
     border-radius: var(--border-radius);
     margin-bottom: 10px;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.lesson-item:hover {
+    box-shadow: var(--shadow);
+    transform: translateX(5px);
 }
 
 .lesson-info {
     flex: 1;
+}
+
+.lesson-info strong {
+    color: var(--primary-color);
 }
 
 .lesson-homework {
@@ -111,6 +174,7 @@ nav {
     display: flex;
     justify-content: center;
     align-items: center;
+    backdrop-filter: blur(5px);
 }
 
 .modal-content {
@@ -118,28 +182,45 @@ nav {
     padding: 30px;
     border-radius: var(--border-radius);
     min-width: 300px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .modal-content h2 {
     margin-bottom: 20px;
+    color: var(--primary-color);
 }
 
-.modal-content input {
+.modal-content input[type="password"] {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin-bottom: 15px;
     border: 1px solid #ddd;
     border-radius: var(--border-radius);
+    font-size: 16px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
 }
 
 .modal-content button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.modal-content button:hover {
+    background-color: var(--hover-color);
+    transform: translateY(-2px);
 }
 
 .admin-controls {
@@ -150,10 +231,11 @@ nav {
 
 .admin-controls select,
 .admin-controls textarea {
-    padding: 10px;
+    padding: 12px;
     border: 1px solid #ddd;
     border-radius: var(--border-radius);
     width: 100%;
+    font-size: 16px;
 }
 
 .admin-controls textarea {
@@ -162,15 +244,26 @@ nav {
 }
 
 .admin-controls button {
-    padding: 10px;
+    padding: 12px;
     background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.admin-controls button:hover {
+    background-color: var(--hover-color);
+    transform: translateY(-2px);
 }
 
 @media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
     .lesson-item {
         flex-direction: column;
     }
@@ -182,5 +275,14 @@ nav {
         border-left: none;
         border-top: 2px solid #e9ecef;
         padding-top: 10px;
+    }
+
+    .tabs {
+        padding-bottom: 10px;
+    }
+
+    .tab-btn {
+        padding: 10px 16px;
+        font-size: 14px;
     }
 } 
