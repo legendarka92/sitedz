@@ -1,12 +1,12 @@
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyBJ9lF6e1H_uGkDCx7wkpRf3qVIZzO-5eo",
-    authDomain: "class9g-schedule.firebaseapp.com",
-    databaseURL: "https://class9g-schedule-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "class9g-schedule",
-    storageBucket: "class9g-schedule.appspot.com",
-    messagingSenderId: "447128777439",
-    appId: "1:447128777439:web:8b0c0e0f0f0f0f0f0f0f0f"
+    apiKey: "AIzaSyDFvlT_GVqwY3kDqotqvHNYRHQ_-Jw6jXk",
+    authDomain: "class9g-schedule-db.firebaseapp.com",
+    databaseURL: "https://class9g-schedule-db-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "class9g-schedule-db",
+    storageBucket: "class9g-schedule-db.appspot.com",
+    messagingSenderId: "1234567890",
+    appId: "1:1234567890:web:abcdef0123456789"
 };
 
 // Initialize Firebase
@@ -18,12 +18,81 @@ const ADMIN_CODE = '123';
 let scheduleData = null;
 let currentDay = 'monday';
 
+// Initial schedule data
+const initialSchedule = {
+    "monday": [
+        {"name": "Алгебра", "time": "8:00", "homework": ""},
+        {"name": "Русский язык", "time": "8:55", "homework": ""},
+        {"name": "История", "time": "9:50", "homework": ""},
+        {"name": "Английский язык", "time": "10:45", "homework": ""},
+        {"name": "Литература", "time": "11:40", "homework": ""},
+        {"name": "География", "time": "12:35", "homework": ""},
+        {"name": "Химия", "time": "13:30", "homework": ""},
+        {"name": "ЭЛЕКТИВ ФИЗИКА", "time": "14:25", "homework": ""}
+    ],
+    "tuesday": [
+        {"name": "Геометрия", "time": "8:00", "homework": ""},
+        {"name": "Биология", "time": "8:55", "homework": ""},
+        {"name": "Физика", "time": "9:50", "homework": ""},
+        {"name": "Русский язык", "time": "10:45", "homework": ""},
+        {"name": "История", "time": "11:40", "homework": ""},
+        {"name": "Физкультура", "time": "12:35", "homework": ""},
+        {"name": "ЭЛЕКТИВ ИНФОРМАТИКА", "time": "13:30", "homework": ""}
+    ],
+    "wednesday": [
+        {"name": "Алгебра", "time": "8:00", "homework": ""},
+        {"name": "Информатика", "time": "8:55", "homework": ""},
+        {"name": "Английский язык", "time": "9:50", "homework": ""},
+        {"name": "Литература", "time": "10:45", "homework": ""},
+        {"name": "География", "time": "11:40", "homework": ""},
+        {"name": "ОБЖ", "time": "12:35", "homework": ""},
+        {"name": "Физкультура", "time": "13:30", "homework": ""}
+    ],
+    "thursday": [
+        {"name": "Геометрия", "time": "8:00", "homework": ""},
+        {"name": "Химия", "time": "8:55", "homework": ""},
+        {"name": "Физика", "time": "9:50", "homework": ""},
+        {"name": "Биология", "time": "10:45", "homework": ""},
+        {"name": "Русский язык", "time": "11:40", "homework": ""},
+        {"name": "История", "time": "12:35", "homework": ""},
+        {"name": "ЭЛЕКТИВ ОБЩЕСТВОЗНАНИЕ", "time": "13:30", "homework": ""}
+    ],
+    "friday": [
+        {"name": "Алгебра", "time": "8:00", "homework": ""},
+        {"name": "Литература", "time": "8:55", "homework": ""},
+        {"name": "Английский язык", "time": "9:50", "homework": ""},
+        {"name": "Информатика", "time": "10:45", "homework": ""},
+        {"name": "География", "time": "11:40", "homework": ""},
+        {"name": "Физкультура", "time": "12:35", "homework": ""},
+        {"name": "Обществознание", "time": "13:30", "homework": ""}
+    ]
+};
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
-    loadSchedule();
-    setupTabListeners();
-    checkSavedLogin();
+    initializeApp();
 });
+
+async function initializeApp() {
+    try {
+        // Check if data exists in Firebase
+        const snapshot = await database.ref('schedule').once('value');
+        if (!snapshot.exists()) {
+            // If no data exists, initialize with default schedule
+            await database.ref('schedule').set(initialSchedule);
+        }
+        
+        // Now load the schedule and set up listeners
+        loadSchedule();
+        setupTabListeners();
+        checkSavedLogin();
+    } catch (error) {
+        console.error('Error initializing app:', error);
+        // If Firebase fails, use local data
+        scheduleData = initialSchedule;
+        displaySchedule(currentDay);
+    }
+}
 
 // Load schedule data
 async function loadSchedule() {
@@ -31,12 +100,19 @@ async function loadSchedule() {
         // Subscribe to Firebase updates
         const scheduleRef = database.ref('schedule');
         scheduleRef.on('value', (snapshot) => {
-            scheduleData = snapshot.val() || {};
+            scheduleData = snapshot.val() || initialSchedule;
+            displaySchedule(currentDay);
+        }, (error) => {
+            console.error('Error loading schedule:', error);
+            // If Firebase fails, use local data
+            scheduleData = initialSchedule;
             displaySchedule(currentDay);
         });
     } catch (error) {
-        console.error('Error loading schedule:', error);
-        document.getElementById('schedule-content').innerHTML = 'Ошибка загрузки расписания';
+        console.error('Error setting up schedule listener:', error);
+        // If Firebase fails, use local data
+        scheduleData = initialSchedule;
+        displaySchedule(currentDay);
     }
 }
 
