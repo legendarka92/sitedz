@@ -285,4 +285,87 @@ nav {
         padding: 10px 16px;
         font-size: 14px;
     }
+}
+
+/* Connection status indicator */
+.connection-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 8px 16px;
+    border-radius: var(--border-radius);
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.connection-status.online {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.connection-status.offline {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 24px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    opacity: 0;
+}
+
+.notification.show {
+    bottom: 20px;
+    opacity: 1;
+}
+
+/* Improve schedule display */
+.schedule-day {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.lesson-item {
+    background: linear-gradient(to right, #f8f9fa, #ffffff);
+}
+
+.lesson-homework {
+    position: relative;
+    padding: 15px;
+    background-color: rgba(255,255,255,0.7);
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+}
+
+.lesson-homework:not(:empty) {
+    background-color: rgba(74, 144, 226, 0.1);
+}
+
+/* Loading state for buttons */
+button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Improve tabs display */
+.tabs {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: var(--border-radius);
+    margin: -20px -20px 20px -20px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 } 

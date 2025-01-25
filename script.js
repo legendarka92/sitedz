@@ -1,12 +1,12 @@
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyDFvlT_GVqwY3kDqotqvHNYRHQ_-Jw6jXk",
-    authDomain: "class9g-schedule-db.firebaseapp.com",
-    databaseURL: "https://class9g-schedule-db-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "class9g-schedule-db",
-    storageBucket: "class9g-schedule-db.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdef0123456789"
+    apiKey: "AIzaSyC_1YTXiDHxWPqDtTe4S0QNoRrdYbXPyRE",
+    authDomain: "class9g-schedule-real.firebaseapp.com",
+    databaseURL: "https://class9g-schedule-real-default-rtdb.firebaseio.com",
+    projectId: "class9g-schedule-real",
+    storageBucket: "class9g-schedule-real.appspot.com",
+    messagingSenderId: "1048532828587",
+    appId: "1:1048532828587:web:a1b2c3d4e5f6a7b8c9d0e1"
 };
 
 // Initialize Firebase
@@ -71,7 +71,26 @@ const initialSchedule = {
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
+    setupConnectionStatus();
 });
+
+// Setup connection status monitoring
+function setupConnectionStatus() {
+    const connectedRef = database.ref('.info/connected');
+    const statusDiv = document.createElement('div');
+    statusDiv.className = 'connection-status';
+    document.querySelector('.container').appendChild(statusDiv);
+
+    connectedRef.on('value', (snap) => {
+        if (snap.val() === true) {
+            statusDiv.textContent = 'Онлайн';
+            statusDiv.className = 'connection-status online';
+        } else {
+            statusDiv.textContent = 'Офлайн';
+            statusDiv.className = 'connection-status offline';
+        }
+    });
+}
 
 async function initializeApp() {
     try {
@@ -80,40 +99,66 @@ async function initializeApp() {
         if (!snapshot.exists()) {
             // If no data exists, initialize with default schedule
             await database.ref('schedule').set(initialSchedule);
+            console.log('Initial schedule data loaded to Firebase');
         }
         
         // Now load the schedule and set up listeners
-        loadSchedule();
+        await setupRealtimeSync();
         setupTabListeners();
         checkSavedLogin();
+        updateLessonSelect(); // Initialize lesson select if admin
     } catch (error) {
         console.error('Error initializing app:', error);
+        alert('Ошибка подключения к базе данных. Используются локальные данные.');
         // If Firebase fails, use local data
         scheduleData = initialSchedule;
         displaySchedule(currentDay);
     }
 }
 
-// Load schedule data
-async function loadSchedule() {
-    try {
-        // Subscribe to Firebase updates
-        const scheduleRef = database.ref('schedule');
-        scheduleRef.on('value', (snapshot) => {
-            scheduleData = snapshot.val() || initialSchedule;
-            displaySchedule(currentDay);
-        }, (error) => {
-            console.error('Error loading schedule:', error);
-            // If Firebase fails, use local data
-            scheduleData = initialSchedule;
-            displaySchedule(currentDay);
-        });
-    } catch (error) {
-        console.error('Error setting up schedule listener:', error);
-        // If Firebase fails, use local data
-        scheduleData = initialSchedule;
+// Setup realtime synchronization
+async function setupRealtimeSync() {
+    const scheduleRef = database.ref('schedule');
+    
+    // Listen for all data changes
+    scheduleRef.on('value', (snapshot) => {
+        scheduleData = snapshot.val() || initialSchedule;
         displaySchedule(currentDay);
-    }
+        console.log('Schedule updated from Firebase');
+    });
+
+    // Listen for specific homework changes
+    scheduleRef.on('child_changed', (snapshot) => {
+        const dayKey = snapshot.key;
+        const dayData = snapshot.val();
+        
+        // Update only if the changed day is currently displayed
+        if (dayKey === currentDay) {
+            displaySchedule(currentDay);
+        }
+        
+        // Show notification if homework was changed
+        const changedLesson = dayData.find(lesson => lesson.homework);
+        if (changedLesson) {
+            showNotification(`Добавлено новое ДЗ по предмету: ${changedLesson.name}`);
+        }
+    });
+}
+
+// Show notification function
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }, 100);
 }
 
 // Setup tab listeners
@@ -249,16 +294,23 @@ async function addHomework() {
     }
 
     try {
+        // Show loading state
+        const submitButton = document.querySelector('.admin-controls button');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Сохранение...';
+
         // Update Firebase
         await database.ref(`schedule/${selectedDay}/${selectedLessonIndex}/homework`).set(homework);
         
-        // Clear input
+        // Clear input and reset button
         homeworkInput.value = '';
+        submitButton.disabled = false;
+        submitButton.textContent = 'Добавить ДЗ';
         
         // Show success message
-        alert('Домашнее задание добавлено!');
+        showNotification('Домашнее задание успешно добавлено!');
     } catch (error) {
         console.error('Error saving homework:', error);
-        alert('Ошибка при сохранении домашнего задания');
+        alert('Ошибка при сохранении домашнего задания. Попробуйте еще раз.');
     }
 } 
