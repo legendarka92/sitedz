@@ -68,8 +68,46 @@ const initialSchedule = {
     ]
 };
 
+// Theme handling
+function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Update theme icon
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    
+    if (newTheme === 'dark') {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+    } else {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+    }
+}
+
+// Initialize theme
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // Set initial icon
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    
+    if (savedTheme === 'dark') {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+    }
+}
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     initializeApp();
     setupConnectionStatus();
 });
@@ -199,7 +237,8 @@ function displaySchedule(day) {
         ${daySchedule.map((lesson, index) => `
             <div class="lesson-item">
                 <div class="lesson-info">
-                    <strong>${lesson.time}</strong> - ${lesson.name}
+                    <div class="lesson-time">${lesson.time}</div>
+                    <div class="lesson-name">${lesson.name}</div>
                 </div>
                 <div class="lesson-homework" id="${day}-${index}">
                     ${lesson.homework || 'Нет домашнего задания'}

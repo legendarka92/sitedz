@@ -1,19 +1,38 @@
+/* Theme variables */
 :root {
+    /* Light theme (default) */
     --primary-color: #4a90e2;
     --secondary-color: #2c3e50;
     --background-color: #f5f6fa;
+    --card-background: #ffffff;
     --text-color: #2c3e50;
-    --border-radius: 8px;
-    --shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --border-color: #e9ecef;
     --hover-color: #357abd;
-    --active-tab-color: #fff;
-    --inactive-tab-color: #e9ecef;
+    --shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --border-radius: 12px;
+    --header-gradient: linear-gradient(135deg, #4a90e2, #2c3e50);
+    --lesson-gradient: linear-gradient(to right, #f8f9fa, #ffffff);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+    --primary-color: #64b5f6;
+    --secondary-color: #34495e;
+    --background-color: #1a1a1a;
+    --card-background: #2d2d2d;
+    --text-color: #ffffff;
+    --border-color: #404040;
+    --hover-color: #90caf9;
+    --shadow: 0 2px 4px rgba(0,0,0,0.3);
+    --header-gradient: linear-gradient(135deg, #64b5f6, #34495e);
+    --lesson-gradient: linear-gradient(to right, #2d2d2d, #363636);
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 body {
@@ -23,6 +42,30 @@ body {
     line-height: 1.6;
 }
 
+/* Theme switcher */
+.theme-switcher {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    background: var(--card-background);
+    padding: 8px;
+    border-radius: 50%;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.theme-switcher:hover {
+    transform: scale(1.1);
+}
+
+.theme-icon {
+    width: 24px;
+    height: 24px;
+    fill: var(--text-color);
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -30,118 +73,146 @@ body {
 }
 
 header {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    padding: 20px;
+    background: var(--header-gradient);
+    padding: 30px;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="rgba(255,255,255,0.1)"/></svg>');
+    opacity: 0.1;
 }
 
 h1 {
     color: white;
     margin-bottom: 20px;
     text-align: center;
-    font-size: 2.5em;
+    font-size: 2.8em;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    letter-spacing: 1px;
 }
 
 nav {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 15px;
 }
 
 .nav-btn {
-    padding: 12px 24px;
+    padding: 12px 28px;
     border: none;
     border-radius: var(--border-radius);
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(255,255,255,0.15);
     color: white;
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: 500;
     backdrop-filter: blur(5px);
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .nav-btn:hover {
-    background-color: rgba(255,255,255,0.2);
+    background-color: rgba(255,255,255,0.25);
     transform: translateY(-2px);
 }
 
 .nav-btn.active {
     background-color: rgba(255,255,255,0.3);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow);
 }
 
 .content-section {
-    background-color: white;
-    padding: 20px;
+    background-color: var(--card-background);
+    padding: 25px;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
 }
 
 .tabs {
     display: flex;
-    gap: 5px;
-    margin-bottom: 20px;
+    gap: 10px;
+    margin-bottom: 25px;
     overflow-x: auto;
-    padding-bottom: 5px;
+    padding: 15px;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .tab-btn {
     padding: 12px 24px;
     border: none;
-    background-color: var(--inactive-tab-color);
+    background-color: var(--background-color);
     color: var(--text-color);
     cursor: pointer;
     transition: all 0.3s ease;
     border-radius: var(--border-radius);
     font-weight: 500;
     white-space: nowrap;
+    border: 1px solid var(--border-color);
 }
 
 .tab-btn:hover {
-    background-color: var(--hover-color);
+    background-color: var(--primary-color);
     color: white;
+    border-color: var(--primary-color);
 }
 
 .tab-btn.active {
     background-color: var(--primary-color);
     color: white;
     box-shadow: var(--shadow);
+    border-color: var(--primary-color);
 }
 
 .schedule-day {
     animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .schedule-day h2 {
     color: var(--primary-color);
-    margin-bottom: 20px;
-    font-size: 1.8em;
+    margin-bottom: 25px;
+    font-size: 2em;
+    text-align: center;
+    position: relative;
+}
+
+.schedule-day h2::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 4px;
+    background: var(--primary-color);
+    margin: 10px auto;
+    border-radius: 2px;
 }
 
 .lesson-item {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: 15px;
-    background-color: #f8f9fa;
+    padding: 20px;
+    background: var(--lesson-gradient);
     border-radius: var(--border-radius);
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     transition: all 0.3s ease;
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--border-color);
 }
 
 .lesson-item:hover {
@@ -151,26 +222,47 @@ nav {
 
 .lesson-info {
     flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-.lesson-info strong {
-    color: var(--primary-color);
+.lesson-time {
+    background: var(--primary-color);
+    color: white;
+    padding: 8px 12px;
+    border-radius: var(--border-radius);
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.lesson-name {
+    font-size: 1.1em;
+    color: var(--text-color);
 }
 
 .lesson-homework {
     flex: 1;
-    margin-left: 20px;
-    padding-left: 20px;
-    border-left: 2px solid #e9ecef;
+    margin-left: 30px;
+    padding: 15px;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
 }
 
+.lesson-homework:not(:empty) {
+    background-color: rgba(74, 144, 226, 0.1);
+}
+
+/* Modal styles */
 .modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.7);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -178,116 +270,83 @@ nav {
 }
 
 .modal-content {
-    background-color: white;
-    padding: 30px;
+    background-color: var(--card-background);
+    padding: 35px;
     border-radius: var(--border-radius);
-    min-width: 300px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    min-width: 350px;
+    box-shadow: var(--shadow);
 }
 
 .modal-content h2 {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     color: var(--primary-color);
+    text-align: center;
 }
 
 .modal-content input[type="password"] {
     width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 2px solid var(--border-color);
     border-radius: var(--border-radius);
     font-size: 16px;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 .checkbox-container {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 15px;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
-.modal-content button {
-    width: 100%;
-    padding: 12px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.3s ease;
-}
-
-.modal-content button:hover {
-    background-color: var(--hover-color);
-    transform: translateY(-2px);
-}
-
+/* Admin panel styles */
 .admin-controls {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
+    padding: 20px;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
 }
 
 .admin-controls select,
 .admin-controls textarea {
-    padding: 12px;
-    border: 1px solid #ddd;
+    padding: 15px;
+    border: 2px solid var(--border-color);
     border-radius: var(--border-radius);
     width: 100%;
     font-size: 16px;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 .admin-controls textarea {
-    min-height: 100px;
+    min-height: 120px;
     resize: vertical;
 }
 
 .admin-controls button {
-    padding: 12px;
+    padding: 15px;
     background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
     font-size: 16px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     transition: all 0.3s ease;
 }
 
-.admin-controls button:hover {
+.admin-controls button:hover:not(:disabled) {
     background-color: var(--hover-color);
     transform: translateY(-2px);
 }
 
-@media (max-width: 768px) {
-    .container {
-        padding: 10px;
-    }
-
-    .lesson-item {
-        flex-direction: column;
-    }
-    
-    .lesson-homework {
-        margin-left: 0;
-        margin-top: 10px;
-        padding-left: 0;
-        border-left: none;
-        border-top: 2px solid #e9ecef;
-        padding-top: 10px;
-    }
-
-    .tabs {
-        padding-bottom: 10px;
-    }
-
-    .tab-btn {
-        padding: 10px 16px;
-        font-size: 14px;
-    }
-}
-
-/* Connection status indicator */
+/* Status and notifications */
 .connection-status {
     position: fixed;
     top: 20px;
@@ -297,7 +356,6 @@ nav {
     font-size: 14px;
     font-weight: 500;
     z-index: 1000;
-    transition: all 0.3s ease;
 }
 
 .connection-status.online {
@@ -310,7 +368,6 @@ nav {
     color: white;
 }
 
-/* Notifications */
 .notification {
     position: fixed;
     bottom: -100px;
@@ -318,54 +375,58 @@ nav {
     transform: translateX(-50%);
     background-color: var(--primary-color);
     color: white;
-    padding: 12px 24px;
+    padding: 15px 30px;
     border-radius: var(--border-radius);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow);
     z-index: 1000;
     transition: all 0.3s ease;
     opacity: 0;
 }
 
 .notification.show {
-    bottom: 20px;
+    bottom: 30px;
     opacity: 1;
 }
 
-/* Improve schedule display */
-.schedule-day {
-    max-width: 800px;
-    margin: 0 auto;
-}
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
 
-.lesson-item {
-    background: linear-gradient(to right, #f8f9fa, #ffffff);
-}
+    header {
+        padding: 20px;
+    }
 
-.lesson-homework {
-    position: relative;
-    padding: 15px;
-    background-color: rgba(255,255,255,0.7);
-    border-radius: var(--border-radius);
-    transition: all 0.3s ease;
-}
+    h1 {
+        font-size: 2em;
+    }
 
-.lesson-homework:not(:empty) {
-    background-color: rgba(74, 144, 226, 0.1);
-}
+    .lesson-item {
+        flex-direction: column;
+    }
+    
+    .lesson-homework {
+        margin-left: 0;
+        margin-top: 15px;
+    }
 
-/* Loading state for buttons */
-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
+    .tabs {
+        padding: 10px;
+    }
 
-/* Improve tabs display */
-.tabs {
-    background-color: #f8f9fa;
-    padding: 10px;
-    border-radius: var(--border-radius);
-    margin: -20px -20px 20px -20px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    .tab-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .theme-switcher {
+        top: 10px;
+        left: 10px;
+    }
+
+    .connection-status {
+        top: 10px;
+        right: 10px;
+    }
 } 
