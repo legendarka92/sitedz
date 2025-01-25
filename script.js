@@ -1,12 +1,12 @@
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyBJ9lF6e1H_uGkDCx7wkpRf3qVIZzO-5eo",
-    authDomain: "class9g-schedule.firebaseapp.com",
-    databaseURL: "https://class9g-schedule-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "class9g-schedule",
-    storageBucket: "class9g-schedule.appspot.com",
-    messagingSenderId: "447128777439",
-    appId: "1:447128777439:web:8b0c0e0f0f0f0f0f0f0f0f"
+    apiKey: "AIzaSyC_1YTXiDHxWPqDtTe4S0QNoRrdYbXPyRE",
+    authDomain: "class9g-schedule-real.firebaseapp.com",
+    databaseURL: "https://class9g-schedule-real-default-rtdb.firebaseio.com",
+    projectId: "class9g-schedule-real",
+    storageBucket: "class9g-schedule-real.appspot.com",
+    messagingSenderId: "1048532828587",
+    appId: "1:1048532828587:web:a1b2c3d4e5f6a7b8c9d0e1"
 };
 
 // Initialize Firebase
@@ -381,7 +381,12 @@ function handleLogin(e) {
     const password = document.getElementById('password').value;
     const rememberMe = document.getElementById('rememberMe').checked;
     
-    if (password === 'admin123') {
+    if (password === '') {
+        showNotification('Введите пароль', 'error');
+        return;
+    }
+    
+    if (password === 'admin') {
         isAdmin = true;
         loginModal.style.display = 'none';
         adminPanel.style.display = 'block';
