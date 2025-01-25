@@ -1,0 +1,48 @@
+{
+    "monday": [
+        {"name": "Алгебра", "time": "8:00", "homework": ""},
+        {"name": "Русский язык", "time": "8:55", "homework": ""},
+        {"name": "История", "time": "9:50", "homework": ""},
+        {"name": "Английский язык", "time": "10:45", "homework": ""},
+        {"name": "Литература", "time": "11:40", "homework": ""},
+        {"name": "География", "time": "12:35", "homework": ""},
+        {"name": "Химия", "time": "13:30", "homework": ""},
+        {"name": "ЭЛЕКТИВ ФИЗИКА", "time": "14:25", "homework": ""}
+    ],
+    "tuesday": [
+        {"name": "Геометрия", "time": "8:00", "homework": ""},
+        {"name": "Биология", "time": "8:55", "homework": ""},
+        {"name": "Физика", "time": "9:50", "homework": ""},
+        {"name": "Русский язык", "time": "10:45", "homework": ""},
+        {"name": "История", "time": "11:40", "homework": ""},
+        {"name": "Физкультура", "time": "12:35", "homework": ""},
+        {"name": "ЭЛЕКТИВ ИНФОРМАТИКА", "time": "13:30", "homework": ""}
+    ],
+    "wednesday": [
+        {"name": "Алгебра", "time": "8:00", "homework": ""},
+        {"name": "Информатика", "time": "8:55", "homework": ""},
+        {"name": "Английский язык", "time": "9:50", "homework": ""},
+        {"name": "Литература", "time": "10:45", "homework": ""},
+        {"name": "География", "time": "11:40", "homework": ""},
+        {"name": "ОБЖ", "time": "12:35", "homework": ""},
+        {"name": "Физкультура", "time": "13:30", "homework": ""}
+    ],
+    "thursday": [
+        {"name": "Геометрия", "time": "8:00", "homework": ""},
+        {"name": "Химия", "time": "8:55", "homework": ""},
+        {"name": "Физика", "time": "9:50", "homework": ""},
+        {"name": "Биология", "time": "10:45", "homework": ""},
+        {"name": "Русский язык", "time": "11:40", "homework": ""},
+        {"name": "История", "time": "12:35", "homework": ""},
+        {"name": "ЭЛЕКТИВ ОБЩЕСТВОЗНАНИЕ", "time": "13:30", "homework": ""}
+    ],
+    "friday": [
+        {"name": "Алгебра", "time": "8:00", "homework": ""},
+        {"name": "Литература", "time": "8:55", "homework": ""},
+        {"name": "Английский язык", "time": "9:50", "homework": ""},
+        {"name": "Информатика", "time": "10:45", "homework": ""},
+        {"name": "География", "time": "11:40", "homework": ""},
+        {"name": "Физкультура", "time": "12:35", "homework": ""},
+        {"name": "Обществознание", "time": "13:30", "homework": ""}
+    ]
+} 
